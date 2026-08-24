@@ -79,7 +79,7 @@ AI-based demand prediction can improve this estimate by considering changing con
 ### Software
 
 * Python
-* FastAPI
+* Flask
 * HTML
 * CSS
 * JavaScript
