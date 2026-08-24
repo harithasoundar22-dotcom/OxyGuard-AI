@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OxyGuard AI Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            color-scheme: dark;
+            font-family: 'Inter', sans-serif;
+            background: #07111f;
+            color: #e8eff7;
+            margin: 0;
+            padding: 0;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            min-height: 100vh;
+            padding: 24px;
+        }
+        .page {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .brand h1 {
+            margin: 0;
+            font-size: 30px;
+            letter-spacing: -0.02em;
+        }
+        .brand p {
+            margin: 0;
+            color: #8fa5c0;
+        }
+        .nav {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+        .nav a {
+            color: #aac5e8;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        .nav a.active,
+        .nav a:hover {
+            color: #ffffff;
+        }
+        .section {
+            margin-bottom: 22px;
+        }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .card {
+            background: rgba(17, 33, 58, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 22px;
+            padding: 22px 24px;
+            min-height: 120px;
+            position: relative;
+            overflow: hidden;
+        }
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top left, rgba(45, 198, 255, 0.13), transparent 45%);
+            pointer-events: none;
+        }
+        .card h3 {
+            margin: 0 0 10px;
+            font-size: 13px;
+            color: #8ba3c1;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+        }
+        .card .value {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+        }
+        .card .value.small {
+            font-size: 22px;
+        }
+        .card.small {
+            padding: 18px 20px;
+        }
+        .card .status-dot {
+            display: inline-flex;
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            margin-right: 8px;
+        }
+        .grid-2,
+        .grid-3 {
+            display: grid;
+            gap: 18px;
+        }
+        .grid-2 {
+            grid-template-columns: 1.9fr 1fr;
+        }
+        .grid-3 {
+            grid-template-columns: 1fr 1fr;
+        }
+        .panel {
+            background: rgba(10, 20, 36, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 26px;
+            padding: 26px;
+        }
+        .panel h2,
+        .panel h3 {
+            margin: 0;
+        }
+        .panel h2 {
+            font-size: 22px;
+        }
+        .panel h3 {
+            font-size: 16px;
+            margin-top: 6px;
+            color: #8fa5c0;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .time-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .time-buttons button {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: transparent;
+            color: #aec9f3;
+            padding: 10px 14px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            font-size: 13px;
+        }
+        .time-buttons button.active,
+        .time-buttons button:hover {
+            color: #ffffff;
+            border-color: rgba(72, 187, 255, 0.5);
+            background: rgba(72, 187, 255, 0.11);
+        }
+        canvas {
+            width: 100% !important;
+            height: 420px !important;
+            border-radius: 20px;
+            background: linear-gradient(180deg, rgba(7,17,31,0.95), rgba(4,10,20,0.9));
+        }
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-top: 18px;
+        }
+        .highlight-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            margin-top: 14px;
+        }
+        .highlight-box span {
+            font-weight: 700;
+        }
+        .alert-card {
+            background: rgba(19, 35, 66, 0.88);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 22px;
+            padding: 18px 22px;
+        }
+        .alert-type {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 14px;
+            gap: 12px;
+        }
+        .alert-list {
+            display: grid;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .alert-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            border-radius: 16px;
+            padding: 14px 16px;
+            background: rgba(255,255,255,0.04);
+        }
+        .alert-item span {
+            font-size: 15px;
+        }
+        .bar-meter {
+            width: 100%;
+            height: 20px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 999px;
+            overflow: hidden;
+            margin: 14px 0;
+        }
+        .bar-meter-inner {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #2fd28e, #1fb5ff);
+        }
+        .supply-summary {
+            display: grid;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .featured-row {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+        .featured-item {
+            border-radius: 18px;
+            padding: 18px 20px;
+            background: rgba(23, 42, 70, 0.96);
+            border: 1px solid rgba(255,255,255,0.07);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 18px;
+            color: #dbe6f5;
+        }
+        table th,
+        table td {
+            padding: 14px 12px;
+            text-align: left;
+        }
+        table th {
+            color: #8fa5c0;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+        table tr {
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.05);
+            font-size: 13px;
+            color: #eef4ff;
+        }
+        .status-pill.green { background: rgba(56, 193, 116, 0.16); }
+        .status-pill.gold { background: rgba(255, 197, 84, 0.16); }
+        .panel.large {
+            min-height: 520px;
+        }
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            color: #8295ac;
+            font-size: 13px;
+        }
+        .footer a {
+            color: #7cc1ff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="topbar">
+        <div class="brand">
+            <div style="width: 50px; height: 50px; border-radius: 18px; display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1bc0ff,#4d60ff);font-size:20px;">O</div>
+            <div>
+                <h1>OxyGuard AI</h1>
+                <p>Hospital oxygen monitoring dashboard</p>
+            </div>
+        </div>
+        <nav class="nav">
+            <a href="#" class="active">Dashboard</a>
+            <a href="#">Live Monitoring</a>
+            <a href="#">Predictions</a>
+            <a href="#">Alerts</a>
+            <a href="#">History</a>
+            <a href="#">Reports</a>
+            <a href="#">Settings</a>
+        </nav>
+    </div>
+
+    <div class="cards" id="kpi-cards"></div>
+
+    <div class="section panel">
+        <div class="chart-header">
+            <div>
+                <h2>Live Oxygen Consumption</h2>
+                <p style="color:#8fa5c0; margin:6px 0 0;">Monitoring oxygen pressure, flow, and consumption in real time.</p>
+            </div>
+            <div class="time-buttons">
+                <button data-hours="1">1h</button>
+                <button data-hours="6">6h</button>
+                <button data-hours="24" class="active">24h</button>
+                <button data-hours="168">7d</button>
+            </div>
+        </div>
+        <canvas id="liveChart"></canvas>
+    </div>
+
+    <div class="section featured-row">
+        <div class="panel">
+            <h2>AI Demand Forecast</h2>
+            <p style="color:#8fa5c0; margin-top:6px;">Historical demand plus predicted usage for the next day.</p>
+            <div class="stats-row">
+                <div class="featured-item">
+                    <h3>Next 4 hours</h3>
+                    <p class="value">1,620 L</p>
+                </div>
+                <div class="featured-item">
+                    <h3>Next 12 hours</h3>
+                    <p class="value">4,850 L</p>
+                </div>
+                <div class="featured-item">
+                    <h3>Next 24 hours</h3>
+                    <p class="value">9,760 L</p>
+                </div>
+            </div>
+            <div class="highlight-box">
+                <span>Peak demand:</span> 2:00 PM
+            </div>
+        </div>
+        <div class="panel alert-card">
+            <h2>AI Anomaly Detection</h2>
+            <p style="color:#8fa5c0; margin-top:6px;">Isolation Forest detects unusual oxygen consumption behavior.</p>
+            <div style="margin-top:22px; display:flex; align-items:center; gap:12px;">
+                <div style="font-size:24px;">⚠️</div>
+                <div>
+                    <h3 style="font-size:18px; margin-bottom:6px;">Abnormal Consumption Detected</h3>
+                    <p style="margin:0; color:#cdd7e6;">ICU oxygen consumption is 32% above normal.</p>
+                </div>
+            </div>
+            <div class="stats-row" style="margin-top:20px; grid-template-columns: 1fr 1fr;">
+                <div class="featured-item">
+                    <h3>AI confidence</h3>
+                    <p class="value">94%</p>
+                </div>
+                <div class="featured-item">
+                    <h3>Status</h3>
+                    <p class="value">Investigating</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section grid-2">
+        <div class="panel large">
+            <h2>Oxygen Supply Prediction</h2>
+            <p style="color:#8fa5c0; margin-top:6px;">Estimated tank level and remaining supply with AI recommendation.</p>
+            <div class="bar-meter">
+                <div id="supplyBar" class="bar-meter-inner" style="width:78%"></div>
+            </div>
+            <div class="supply-summary">
+                <div><strong>78%</strong> remaining</div>
+                <div><strong>Available:</strong> 7,800 L</div>
+                <div><strong>Predicted consumption:</strong> 535 L/hr</div>
+                <div><strong>Estimated remaining time:</strong> 14.6 hours</div>
+            </div>
+            <div class="highlight-box">
+                <span>AI Recommendation:</span> Refill required within 10 hours.
+            </div>
+        </div>
+        <div class="panel">
+            <h2>Hospital / Ward Status</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ward</th>
+                        <th>Consumption</th>
+                        <th>Status</th>
+                        <th>Risk</th>
+                    </tr>
+                </thead>
+                <tbody id="wardTable"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="section panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:16px;">
+            <div>
+                <h2>Alert Center</h2>
+                <p style="color:#8fa5c0; margin-top:6px;">Categorized system events and alert severity.</p>
+            </div>
+            <div style="font-size:14px; color:#8fa5c0;">Sensors → ESP32 → Backend → Database → AI Models → Dashboard → Alerts</div>
+        </div>
+        <div class="alert-type">
+            <div class="alert-card">
+                <strong style="color:#ff6b6b;">🔴 Critical</strong>
+                <div class="alert-list" id="criticalAlerts"></div>
+            </div>
+            <div class="alert-card">
+                <strong style="color:#ffcb57;">🟡 Warning</strong>
+                <div class="alert-list" id="warningAlerts"></div>
+            </div>
+            <div class="alert-card">
+                <strong style="color:#86b4ff;">🔵 Information</strong>
+                <div class="alert-list" id="infoAlerts"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div>OxyGuard AI • System Online</div>
+        <div><a href="#">View All Alerts →</a></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const apiUrl = "/api/dashboard";
+    const chartUrl = "/api/chart";
+    const chartCanvas = document.getElementById('liveChart');
+    let chartInstance;
+    let activeHours = 24;
+
+    function fetchDashboard() {
+        fetch(apiUrl)
+            .then(res => res.json())
+            .then(data => {
+                renderKpiCards(data);
+                renderWardStatus(data.ward_status);
+                renderAlerts(data.alerts);
+                updateSupplyBar(data.remaining_percent);
+                renderForecast(data.forecast);
+            });
+    }
+
+    function fetchChart(hours) {
+        fetch(`${chartUrl}/${hours}`)
+            .then(res => res.json())
+            .then(data => {
+                renderLiveChart(data);
+            });
+    }
+
+    function renderKpiCards(data) {
+        const cards = [
+            { label: 'Oxygen Pressure', value: `${data.oxygen_pressure} bar`, color: 'green' },
+            { label: 'Flow Rate', value: `${data.flow_rate} L/min`, color: 'blue' },
+            { label: 'Current Consumption', value: `${data.consumption} L/hr`, color: 'yellow' },
+            { label: 'Estimated Supply', value: `${data.estimated_supply_hours} hrs`, color: 'green' },
+            { label: 'Active Alerts', value: data.active_alerts, color: 'red' },
+        ];
+
+        const container = document.getElementById('kpi-cards');
+        container.innerHTML = cards.map(card => `
+            <div class="card small">
+                <h3>${card.label}</h3>
+                <p class="value">${card.value}</p>
+            </div>
+        `).join('');
+    }
+
+    function renderWardStatus(items) {
+        const tbody = document.getElementById('wardTable');
+        tbody.innerHTML = items.map(row => `
+            <tr>
+                <td>${row.ward}</td>
+                <td>${row.consumption}</td>
+                <td>${row.status}</td>
+                <td><span class="status-pill ${row.risk.includes('Low') ? 'green' : 'gold'}">${row.risk}</span></td>
+            </tr>
+        `).join('');
+    }
+
+    function renderAlerts(alerts) {
+        const critical = document.getElementById('criticalAlerts');
+        const warning = document.getElementById('warningAlerts');
+        const info = document.getElementById('infoAlerts');
+        critical.innerHTML = alerts.critical.map(text => `<div class="alert-item"><span>${text}</span></div>`).join('');
+        warning.innerHTML = alerts.warning.map(text => `<div class="alert-item"><span>${text}</span></div>`).join('');
+        info.innerHTML = alerts.information.map(text => `<div class="alert-item"><span>${text}</span></div>`).join('');
+    }
+
+    function updateSupplyBar(percent) {
+        document.getElementById('supplyBar').style.width = `${percent}%`;
+    }
+
+    function renderForecast(forecast) {
+        // Forecast values are already static in current UI
+    }
+
+    function renderLiveChart(data) {
+        const context = chartCanvas.getContext('2d');
+        if (chartInstance) chartInstance.destroy();
+
+        chartInstance = new Chart(context, {
+            type: 'line',
+            data: {
+                labels: data.times,
+                datasets: [
+                    {
+                        label: 'Oxygen pressure',
+                        data: data.oxygen_pressure,
+                        borderColor: '#4dc4ff',
+                        backgroundColor: 'rgba(77,196,255,0.12)',
+                        fill: true,
+                        tension: 0.32,
+                        yAxisID: 'y1',
+                    },
+                    {
+                        label: 'Flow rate',
+                        data: data.flow_rate,
+                        borderColor: '#67d0a3',
+                        backgroundColor: 'rgba(103,208,163,0.12)',
+                        fill: true,
+                        tension: 0.32,
+                        yAxisID: 'y2',
+                    },
+                    {
+                        label: 'Consumption rate',
+                        data: data.consumption,
+                        borderColor: '#ffbd4f',
+                        backgroundColor: 'rgba(255,189,79,0.14)',
+                        fill: true,
+                        tension: 0.32,
+                        yAxisID: 'y3',
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#a9c5e3', maxRotation: 0, autoSkip: true, maxTicksLimit: 12 },
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'left',
+                        grid: { color: 'rgba(255,255,255,0.06)' },
+                        ticks: { color: '#a9c5e3' },
+                        beginAtZero: true,
+                    },
+                    y2: {
+                        type: 'linear',
+                        position: 'right',
+                        grid: { display: false },
+                        ticks: { color: '#a9c5e3' },
+                        beginAtZero: true,
+                    },
+                    y3: {
+                        type: 'linear',
+                        position: 'right',
+                        grid: { display: false },
+                        ticks: { color: '#a9c5e3' },
+                        beginAtZero: true,
+                    },
+                },
+                plugins: {
+                    legend: { labels: { color: '#d6e6fb' } },
+                    tooltip: { mode: 'index', intersect: false },
+                },
+            },
+        });
+    }
+
+    document.querySelectorAll('.time-buttons button').forEach(button => {
+        button.addEventListener('click', () => {
+            document.querySelectorAll('.time-buttons button').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            activeHours = Number(button.dataset.hours);
+            fetchChart(activeHours);
+        });
+    });
+
+    fetchDashboard();
+    fetchChart(activeHours);
+    setInterval(fetchDashboard, 12000);
+</script>
+</body>
+</html>
